@@ -18,7 +18,7 @@ requirements = []
 
 setuptools.setup(
     name="nova_fixed_multi",
-    version="2015.1",
+    version="2015.3",
     author="Wikimedia Foundation",
     author_email="abogott@wikimedia.org",
     description="Designate sink handler that supports multiple arecords per instance",

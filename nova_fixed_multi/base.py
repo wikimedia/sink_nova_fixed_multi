@@ -77,7 +77,7 @@ class BaseAddressMultiHandler(BaseAddressHandler):
                     recordset = self._find_or_create_recordset(
                         context, **recordset_values)
 
-                    record_values = { 'data': reverse_format % event_data }
+                    record_values = {'data': reverse_format % event_data}
 
                     if managed:
                         record_values.update({
@@ -88,7 +88,8 @@ class BaseAddressMultiHandler(BaseAddressHandler):
                             'managed_resource_id': resource_id})
 
                     LOG.debug('Creating record in %s / %s with values %r',
-                              reverse_domain['id'], recordset['id'], record_values)
+                              reverse_domain['id'],
+                              recordset['id'], record_values)
                     central_api.create_record(context,
                                               reverse_domain['id'],
                                               recordset['id'],
@@ -120,3 +121,44 @@ class BaseAddressMultiHandler(BaseAddressHandler):
                                           domain['id'],
                                           recordset['id'],
                                           record_values)
+
+    def _delete(self, managed=True, resource_id=None, resource_type='instance',
+                criterion={}):
+        """
+        Handle a generic delete of a fixed ip within a domain
+
+        :param criterion: Criterion to search and destroy records
+        """
+        context = DesignateContext.get_admin_context(all_tenants=True)
+
+        criterion.update({'domain_id': cfg.CONF[self.name].domain_id})
+
+        if managed:
+            criterion.update({
+                'managed': managed,
+                'managed_plugin_name': self.get_plugin_name(),
+                'managed_plugin_type': self.get_plugin_type(),
+                'managed_resource_id': resource_id,
+                'managed_resource_type': resource_type
+            })
+
+        records = central_api.find_records(context, criterion)
+
+        for record in records:
+            LOG.debug('Deleting record %s' % record['id'])
+
+            central_api.delete_record(context, cfg.CONF[self.name].domain_id,
+                                      record['recordset_id'], record['id'])
+
+        reverse_domain_id = cfg.CONF[self.name].get('reverse_domain_id')
+        if reverse_domain_id:
+            criterion.update({'domain_id': reverse_domain_id})
+
+            records = central_api.find_records(context, criterion)
+
+            for record in records:
+                LOG.debug('Deleting record %s' % record['id'])
+
+                central_api.delete_record(context,
+                                          reverse_domain_id,
+                                          record['recordset_id'], record['id'])
