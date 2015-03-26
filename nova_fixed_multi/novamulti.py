@@ -32,7 +32,9 @@ cfg.CONF.register_opts([
     cfg.ListOpt('notification-topics', default=['monitor']),
     cfg.StrOpt('control-exchange', default='nova'),
     cfg.StrOpt('domain-id', default=None),
-    cfg.MultiStrOpt('format', default=[])
+    cfg.MultiStrOpt('format', default=[]),
+    cfg.StrOpt('reverse-domain-id', default=None),
+    cfg.StrOpt('reverse-format', default=None),
 ], group='handler:nova_fixed_multi')
 
 

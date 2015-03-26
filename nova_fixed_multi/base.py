@@ -58,6 +58,42 @@ class BaseAddressMultiHandler(BaseAddressHandler):
             event_data = data.copy()
             event_data.update(get_ip_data(addr))
 
+            if addr['version'] == 4:
+                reverse_format = cfg.CONF[self.name].get('reverse_format')
+                reverse_domain_id = cfg.CONF[self.name].get('reverse_domain_id')
+                if reverse_format and reverse_domain_id:
+                    reverse_domain = self.get_domain(reverse_domain_id)
+                    LOG.debug('Reverse domain: %r' % reverse_domain)
+
+                    ip_digits = addr['address'].split('.')
+                    ip_digits.reverse()
+                    name = "%s.in-addr.arpa." % '.'.join(ip_digits)
+
+                    recordset_values = {
+                        'domain_id': reverse_domain['id'],
+                        'name': name,
+                        'type': 'PTR',
+                    }
+                    recordset = self._find_or_create_recordset(
+                        context, **recordset_values)
+
+                    record_values = { 'data': reverse_format % event_data }
+
+                    if managed:
+                        record_values.update({
+                            'managed': managed,
+                            'managed_plugin_name': self.get_plugin_name(),
+                            'managed_plugin_type': self.get_plugin_type(),
+                            'managed_resource_type': resource_type,
+                            'managed_resource_id': resource_id})
+
+                    LOG.debug('Creating record in %s / %s with values %r',
+                              reverse_domain['id'], recordset['id'], record_values)
+                    central_api.create_record(context,
+                                              reverse_domain['id'],
+                                              recordset['id'],
+                                              record_values)
+
             for fmt in cfg.CONF[self.name].get('format'):
                 recordset_values = {
                     'domain_id': domain['id'],
