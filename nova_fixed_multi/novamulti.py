@@ -21,6 +21,8 @@ from oslo.config import cfg
 from designate.openstack.common import log as logging
 from nova_fixed_multi.base import BaseAddressMultiHandler
 
+import sys
+
 LOG = logging.getLogger(__name__)
 
 cfg.CONF.register_group(cfg.OptGroup(
@@ -60,12 +62,22 @@ class NovaFixedMultiHandler(BaseAddressMultiHandler):
         LOG.debug('NovaFixedHandler received notification - %s' % event_type)
 
         if event_type == 'compute.instance.create.end':
-            self._create(payload['fixed_ips'], payload,
-                         resource_id=payload['instance_id'],
-                         resource_type='instance')
+            try:
+                self._create(payload['fixed_ips'], payload,
+                             resource_id=payload['instance_id'],
+                             resource_type='instance')
+            except:
+                LOG.debug("--------------------     Unexpected error: %s" %
+                          sys.exc_info()[0])
+                LOG.debug("--------------------     (swallowed)")
 
         elif event_type == 'compute.instance.delete.start':
-            self._delete(resource_id=payload['instance_id'],
-                         resource_type='instance')
+            try:
+                self._delete(resource_id=payload['instance_id'],
+                             resource_type='instance')
+            except:
+                LOG.debug("--------------------     Unexpected error: %s" %
+                          sys.exc_info()[0])
+                LOG.debug("--------------------     (swallowed)")
         else:
             raise ValueError('NovaFixedHandler received an invalid event type')
