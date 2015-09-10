@@ -18,7 +18,7 @@
 #  in the designate source at designate/notification_handler/nova.py
 
 from oslo.config import cfg
-from designate.openstack.common import log as logging
+from oslo_log import log as logging
 from nova_fixed_multi.base import BaseAddressMultiHandler
 
 import sys
