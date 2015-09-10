@@ -25,6 +25,7 @@ from designate.central import rpcapi as central_rpcapi
 from designate.context import DesignateContext
 from designate.notification_handler.base import BaseAddressHandler
 from designate.notification_handler.base import get_ip_data
+from designate.objects import Record
 from designate.plugin import ExtensionPlugin
 
 LOG = logging.getLogger(__name__)
@@ -93,7 +94,7 @@ class BaseAddressMultiHandler(BaseAddressHandler):
                     central_api.create_record(context,
                                               reverse_domain['id'],
                                               recordset['id'],
-                                              record_values)
+                                              Record(**record_values))
 
             for fmt in cfg.CONF[self.name].get('format'):
                 recordset_values = {
@@ -120,7 +121,7 @@ class BaseAddressMultiHandler(BaseAddressHandler):
                 central_api.create_record(context,
                                           domain['id'],
                                           recordset['id'],
-                                          record_values)
+                                          Record(**record_values))
 
     def _delete(self, managed=True, resource_id=None, resource_type='instance',
                 criterion={}):
