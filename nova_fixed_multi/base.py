@@ -18,13 +18,12 @@
 # designate/notification_handler/base.py
 
 import abc
-from oslo.config import cfg
+from oslo_config import cfg
 from designate import exceptions
 from oslo_log import log as logging
 from designate.central import rpcapi as central_rpcapi
 from designate.context import DesignateContext
 from designate.notification_handler.base import BaseAddressHandler
-from designate.notification_handler.base import get_ip_data
 from designate.objects import Record
 from designate.plugin import ExtensionPlugin
 from keystoneclient.auth.identity import v3
@@ -39,6 +38,22 @@ central_api = central_rpcapi.CentralAPI()
 
 
 class BaseAddressMultiHandler(BaseAddressHandler):
+    def _get_ip_data(self, addr_dict):
+        ip = addr_dict['address']
+        version = addr_dict['version']
+
+        data = {
+            'ip_version': version,
+        }
+
+        # TODO(endre): Add v6 support
+        if version == 4:
+            data['ip_address'] = ip.replace('.', '-')
+            ip_data = ip.split(".")
+            for i in [0, 1, 2, 3]:
+                data["octet%s" % i] = ip_data[i]
+        return data
+
     def _create(self, addresses, extra, managed=True,
                 resource_type=None, resource_id=None):
         """
@@ -76,7 +91,7 @@ class BaseAddressMultiHandler(BaseAddressHandler):
 
         for addr in addresses:
             event_data = data.copy()
-            event_data.update(get_ip_data(addr))
+            event_data.update(self._get_ip_data(addr))
 
             if addr['version'] == 4:
                 reverse_format = cfg.CONF[self.name].get('reverse_format')
