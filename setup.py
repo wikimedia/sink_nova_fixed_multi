@@ -38,7 +38,9 @@ setuptools.setup(
         "Programming Language :: Python"
     ],
     entry_points={
-        "designate.notification.handler": ["nova_fixed_multi=nova_fixed_multi.novamulti:NovaFixedMultiHandler"]
+        "designate.notification.handler": [
+            "nova_fixed_multi=nova_fixed_multi.novamulti:NovaFixedMultiHandler",
+        ]
     },
     py_modules=[]
 )

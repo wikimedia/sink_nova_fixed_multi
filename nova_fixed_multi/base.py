@@ -206,7 +206,7 @@ class BaseAddressMultiHandler(BaseAddressHandler):
             passwd = cfg.CONF[self.name].keystone_auth_pass
             project = cfg.CONF[self.name].keystone_auth_project
             url = cfg.CONF[self.name].keystone_auth_url
-        except keyerror:
+        except keyerror:  # noqa
             LOG.debug('Missing a config setting for keystone auth.')
             return
 
